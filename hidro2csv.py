@@ -1,4 +1,4 @@
-import webservice_hidro as hidro
+import webservice_hidro.webservice_hidro as hidro
 
 def exporta_dados_hidro():
 
