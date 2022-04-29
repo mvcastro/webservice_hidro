@@ -5,20 +5,12 @@ import pandas as pd
 import requests
 
 
-def retorna_inventario(
-    codEstDE: str = "",
-    codEstATE: str = "",
-    tpEst: str = "",
-    nmEst: str = "",
-    nmRio: str = "",
-    codSubBacia: str = "",
-    codBacia: str = "",
-    nmMunicipio: str = "",
-    nmEstado: str = "",
-    sgResp: str = "",
-    sgOper: str = "",
-    telemetrica: str = "",
-) -> pd.DataFrame:
+def retorna_inventario(codEstDE: str = "", codEstATE: str = "",
+                       tpEst: str = "", nmEst: str = "",
+                       nmRio: str = "", codSubBacia: str = "",
+                       codBacia: str = "", nmMunicipio: str = "",
+                       nmEstado: str = "", sgResp: str = "",
+                       sgOper: str = "", telemetrica: str = "") -> pd.DataFrame:
     """Inventário pluviométrico/fluviométrico atualizado.
 
     Args:
@@ -42,16 +34,14 @@ def retorna_inventario(
     """
 
     url_hidro1 = "http://telemetriaws1.ana.gov.br"
-    url_hidro2 = "/ServiceANA.asmx/HidroInventario?codEstDE={}".format(codEstDE)
+    url_hidro2 = "/ServiceANA.asmx/HidroInventario?codEstDE={}".format(
+        codEstDE)
     url_hidro3 = "&codEstATE={}&tpEst={}&nmEst={}&nmRio={}".format(
-        codEstATE, tpEst, nmEst, nmRio
-    )
+        codEstATE, tpEst, nmEst, nmRio)
     url_hidro4 = "&codSubBacia={}&codBacia={}&nmMunicipio={}".format(
-        codSubBacia, codBacia, nmMunicipio
-    )
+        codSubBacia, codBacia, nmMunicipio)
     url_hidro5 = "&nmEstado={}&sgResp={}&sgOper={}&telemetrica={}".format(
-        nmEstado, sgResp, sgOper, telemetrica
-    )
+        nmEstado, sgResp, sgOper, telemetrica)
 
     url_hidro = url_hidro1 + url_hidro2 + url_hidro3 + url_hidro4 + url_hidro5
 
@@ -75,18 +65,14 @@ def retorna_inventario(
                         propriedades[prop.tag] = prop.text
                         inventario[tabela] = propriedades
 
-    lst_informacoes = [inventario[i] for i in inventario.keys()]
+    lst_informacoes = [inventario[i] for i in inventario]
 
     return pd.DataFrame(lst_informacoes)
 
 
-def retorna_serie_historica(
-    codEstacao: str,
-    tiposDados: int,
-    dataInicio: str,
-    dataFim: str = "",
-    nivelConsistencia: int = 2,
-) -> Dict[str, int]:
+def retorna_serie_historica(codEstacao: str, tiposDados: int,
+                            dataInicio: str = "", dataFim: str = "",
+                            nivelConsistencia: int = 2) -> pd.DataFrame:
     """Retorna série histórica da estação selecionada.
 
     Args:
@@ -98,18 +84,14 @@ def retorna_serie_historica(
         nivelConsistencia (int, optional): 1-Bruto ou 2-Consistido. Defaults to 2.
 
     Returns:
-         Dict[str, int]: Dicionário com os dados da série histórica.
+         DataFrame: Dicionário com os dados da série histórica.
     """
 
     url_hidro1 = "http://telemetriaws1.ana.gov.br"
-    url_hidro2 = (
-        "/ServiceANA.asmx/HidroSerieHistorica?codEstacao={}&dataInicio={}".format(
-            codEstacao, dataInicio
-        )
-    )
+    url_hidro2 = "/ServiceANA.asmx/HidroSerieHistorica?codEstacao={}&dataInicio={}".format(
+        codEstacao, dataInicio)
     url_hidro3 = "&dataFim={}&tipoDados={}&nivelConsistencia={}".format(
-        dataFim, tiposDados, nivelConsistencia
-    )
+        dataFim, tiposDados, nivelConsistencia)
 
     url_hidro = url_hidro1 + url_hidro2 + url_hidro3
 
@@ -131,4 +113,7 @@ def retorna_serie_historica(
                     for prop in dado:
                         propriedades[prop.tag] = prop.text
                         serie_historica[id_serie] = propriedades
-    return serie_historica
+
+    lst_informacoes = [serie_historica[i] for i in serie_historica]
+
+    return pd.DataFrame(lst_informacoes)
