@@ -1,37 +1,40 @@
+import typing
 import requests
 import xml.etree.ElementTree as ET
-import pandas as pd
+from typing import Dict
 
 
-def retorna_inventario(codEstDE="", codEstATE="", tpEst="", 
-                    nmEst="", nmRio="", codSubBacia="",
-                    codBacia="", nmMunicipio="",
-                    nmEstado="", sgResp="",
-                    sgOper="", telemetrica=""):
+def retorna_inventario(codEstDE: str = "", codEstATE: str = "", tpEst: str = "", 
+                    nmEst: str = "", nmRio: str = "", codSubBacia: str = "",
+                    codBacia: str = "", nmMunicipio: str = "", nmEstado: str = "",
+                    sgResp: str = "", sgOper: str = "", telemetrica: str = "") -> Dict[str, str]:
     """Inventário pluviométrico/fluviométrico atualizado.
-    codEstDE: Código de 8 dígitos da estação - INICIAL (Ex.: 00047000)
-    codEstATE: Código de 8 dígitos da estação - FINAL (Ex.: 90300000)
-    tpEst: Tipo da estação (1-Flu ou 2-Plu)
-    nmEst: Nome da Estação (Ex.: Barra Mansa)
-    nmRio: Nome do Rio (Ex.: Rio Javari)
-    codSubBacia: Código da Sub-Bacia hidrografica (Ex.: 10)
-    codBacia: Código da Bacia hidrografica (Ex.: 1)
-    nmMunicipio: Município (Ex.: Itaperuna)
-    nmEstado: Estado (Ex.: Rio de Janeiro)
-    sgResp: Sigla do Responsável pela estação (Ex.: ANA)
-    sgOper: Sigla da Operadora da estação (Ex.: CPRM)
-    telemetrica: (Ex: 1-SIM ou 0-NÃO)"""
+
+    Args:
+        codEstDE (str, optional): Código de 8 dígitos da estação - INICIAL (Ex.: 00047000). Defaults to "".
+        codEstATE (str, optional): Código de 8 dígitos da estação - FINAL (Ex.: 90300000). Defaults to "".
+        tpEst (str, optional): Tipo da estação (1-Flu ou 2-Plu). Defaults to "".
+        nmEst (str, optional): Nome da Estação (Ex.: Barra Mansa). Defaults to "".
+        nmRio (str, optional): Nome do Rio (Ex.: Rio Javari). Defaults to "".
+        codSubBacia (str, optional): Código da Sub-Bacia hidrografica (Ex.: 10). Defaults to "".
+        codBacia (str, optional): Código da Bacia hidrografica (Ex.: 1). Defaults to "".
+        nmMunicipio (str, optional): Município (Ex.: Itaperuna). Defaults to "".
+        nmEstado (str, optional): Estado (Ex.: Rio de Janeiro). Defaults to "".
+        sgResp (str, optional): Sigla do Responsável pela estação (Ex.: ANA). Defaults to "".
+        sgOper (str, optional): Sigla da Operadora da estação (Ex.: CPRM). Defaults to "".
+        telemetrica (str, optional): (Ex: 1-SIM ou 0-NÃO). Defaults to "".
+
+    Returns:
+        Dict[str, str]: Retorna dicionário com as propriedades das estações selecionadas do Inventário.
+    """
 
     url_hidro1 = "http://telemetriaws1.ana.gov.br"
-    url_hidro2 = '/ServiceANA.asmx/HidroInventario?codEstDE={}\
-&codEstATE={}&tpEst={}&nmEst={}&nmRio={}\
-&codSubBacia={}&codBacia={}&nmMunicipio={}\
-&nmEstado={}&sgResp={}&sgOper={}&telemetrica={}'\
-.format(codEstDE, codEstATE, tpEst, nmEst, nmRio, 
-            codSubBacia, codBacia, nmMunicipio, 
-            nmEstado, sgResp, sgOper, telemetrica)
+    url_hidro2 = "/ServiceANA.asmx/HidroInventario?codEstDE={}".format(codEstDE)
+    url_hidro3 = "&codEstATE={}&tpEst={}&nmEst={}&nmRio={}".format(codEstATE, tpEst, nmEst, nmRio)
+    url_hidro4 = "&codSubBacia={}&codBacia={}&nmMunicipio={}".format(codSubBacia, codBacia, nmMunicipio)
+    url_hidro5 = "&nmEstado={}&sgResp={}&sgOper={}&telemetrica={}".format(nmEstado, sgResp, sgOper, telemetrica)
 
-    url_hidro = url_hidro1 + url_hidro2
+    url_hidro = url_hidro1 + url_hidro2 + url_hidro3 + url_hidro4 + url_hidro5
 
     print(url_hidro)
 
@@ -53,18 +56,29 @@ def retorna_inventario(codEstDE="", codEstATE="", tpEst="",
     return inventario
 
 
-def retorna_serie_historica(codEstacao, dataInicio, dataFim, tiposDados, nivelConsistencia):
-    """codEstacao: Código Plu ou Flu
-    dataInicio
-    dataFim: Caso não preenchido, trará até o último dado mais recente armazenado
-    tipoDados: 1-Cotas, 2-Chuvas ou 3-Vazões
-    nivelConsistencia: 1-Bruto ou 2-Consistido"""
+def retorna_serie_historica(codEstacao: str, tiposDados: int, dataInicio: str,
+                            dataFim: str = "", nivelConsistencia: int = 2) -> Dict[str, int]:
+    """Retorna série histórica da estação selecionada.
+
+    Args:
+        codEstacao (str): Código Plu ou Flu.
+        tiposDados (int): 1-Cotas, 2-Chuvas ou 3-Vazões.
+        dataInicio (str): Data inicial. Formato: dd/mm/aaaa
+        dataFim (str, optional): Data inicial. Formato: dd/mm/aaaa. Defaults to "".
+                                 Caso não preenchido, trará até o último dado mais recente.
+        nivelConsistencia (int, optional): 1-Bruto ou 2-Consistido. Defaults to 2.
+
+    Returns:
+         Dict[str, int]: Dicionário com os dados da série histórica.
+    """
 
     url_hidro1 = "http://telemetriaws1.ana.gov.br"
-    url_hidro2 = '/ServiceANA.asmx/HidroSerieHistorica?codEstacao={}&dataInicio={}&dataFim={}&tipoDados={}&nivelConsistencia={}'\
-                .format(codEstacao, dataInicio, dataFim, tiposDados, nivelConsistencia)
+    url_hidro2 = '/ServiceANA.asmx/HidroSerieHistorica?codEstacao={}&dataInicio={}'\
+                 .format(codEstacao, dataInicio)
+    url_hidro3 = '&dataFim={}&tipoDados={}&nivelConsistencia={}'\
+                 .format(dataFim, tiposDados, nivelConsistencia)
 
-    url_hidro = url_hidro1 + url_hidro2
+    url_hidro = url_hidro1 + url_hidro2 + url_hidro3
 
     print(url_hidro)
 
