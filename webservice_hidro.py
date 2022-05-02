@@ -1,5 +1,7 @@
 import xml.etree.ElementTree as ET
+from typing import Union
 
+import numpy as np
 import pandas as pd
 import requests
 
@@ -72,7 +74,8 @@ def retorna_inventario(codEstDE: str = "", codEstATE: str = "",
 def retorna_serie_historica(codEstacao: str, tiposDados: int,
                             dataInicio: str = "", dataFim: str = "",
                             nivelConsistencia: int = 2) -> pd.DataFrame:
-    """Retorna série histórica da estação selecionada.
+    """Retorna DataFrame da série histórica da estação selecionada
+       no formato da tabela do HidroWeb.
 
     Args:
         codEstacao (str): Código Plu ou Flu.
@@ -117,6 +120,65 @@ def retorna_serie_historica(codEstacao: str, tiposDados: int,
 
     serie_historica = pd.DataFrame(lst_informacoes)
 
-    serie_historica.sort_values('DataHora', inplace=True)
+    # serie_historica.sort_values('DataHora', inplace=True)
 
     return serie_historica
+
+
+def __analise_datas(row: pd.Series) -> Union[np.datetime64, None]:
+    """Define se existe a data no DataFrame da série histórica do HidroWeb.
+
+    Args:
+        row (p.Series): Linha do DataFrame da série histórica.
+
+    Returns:
+        np.datetime64 or None : Retorna data.
+    """
+    data = row['Data']
+    var = row['variable']
+
+    if var == 'Vazao31' and data.month in (4, 6, 9, 11):
+        return None
+
+    if (not data.is_leap_year and data.month == 2 and var in ('Vazao29', 'Vazao30', 'Vazao31')):
+        return None
+
+    if (data.is_leap_year and data.month == 2 and var in ('Vazao30', 'Vazao31')):
+        return None
+
+    result = data + np.timedelta64(int(var[5:])-1, 'D')
+
+    return result
+
+
+def reorganiza_serie_em_coluna(serie_historica: pd.DataFrame) -> pd.DataFrame:
+    """Reorganiza o DataFrame da série histórica com os dados
+       em uma única coluna sequencial de data.
+
+    Args:
+        serie_historica (pd.DataFrame): DataFrame original extraída do webservice
+
+    Returns:
+        pd.DataFrame: DataFrame com dados em sequência de data.
+    """
+
+    var = serie_historica.columns[-2][:-8]
+
+    colunas1 = [f'{var}0' + str(i) for i in range(1, 10)]
+    colunas2 = [var + str(i) for i in range(10, 32)]
+    colunas = colunas1 + colunas2
+
+    df2 = serie_historica[['DataHora'] + colunas]
+
+    df_melt = df2.melt(id_vars=['DataHora'])
+    df_melt['Data'] = pd.to_datetime(df_melt['DataHora'])
+    df_melt['Data2'] = df_melt.apply(__analise_datas, axis=1)
+    df_melt.sort_values('Data2', inplace=True)
+
+    df_final = df_melt[['Data2', 'value']].copy()
+    df_final.columns = ['Data', 'Valor']
+    df_final.dropna(subset=['Data'], inplace=True)
+    df_final = df_final.astype({'Valor': float})
+    df_final.reset_index(drop=True, inplace=True)
+
+    return df_final
