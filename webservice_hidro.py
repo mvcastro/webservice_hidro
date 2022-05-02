@@ -1,5 +1,4 @@
 import xml.etree.ElementTree as ET
-from typing import Dict
 
 import pandas as pd
 import requests
@@ -116,8 +115,8 @@ def retorna_serie_historica(codEstacao: str, tiposDados: int,
 
     lst_informacoes = [serie_historica[i] for i in serie_historica]
 
-    df = pd.DataFrame(lst_informacoes)
+    serie_historica = pd.DataFrame(lst_informacoes)
 
-    df.sort_values('DataHora', inplace=True)
+    serie_historica.sort_values('DataHora', inplace=True)
 
-    return df
+    return serie_historica
