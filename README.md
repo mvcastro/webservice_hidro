@@ -29,8 +29,8 @@ Resultado (10 primeiras colunas):
 from webservice_hidro import retorna_inventario
 
 # Seleção dos dados brutos de vazão da estação fluviométrica
-# PENEDO - Código: 49330000 em Penedo/Alagoas para o ano de 2021
-serie_historica = retorna_serie_historica(codEstacao=49740000, tiposDados=3,
+# PIRANHAS - Código: 49330000 em Piranhas/Alagoas para o ano de 2021
+serie_historica = retorna_serie_historica(codEstacao=49330000, tiposDados=3,
                             dataInicio="01/01/2021", dataFim="31/12/2021",
                             nivelConsistencia=1)
 
