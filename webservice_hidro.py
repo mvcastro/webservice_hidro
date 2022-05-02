@@ -116,4 +116,8 @@ def retorna_serie_historica(codEstacao: str, tiposDados: int,
 
     lst_informacoes = [serie_historica[i] for i in serie_historica]
 
-    return pd.DataFrame(lst_informacoes)
+    df = pd.DataFrame(lst_informacoes)
+
+    df.sort_values('DataHora', inplace=True)
+
+    return df
