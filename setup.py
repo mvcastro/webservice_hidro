@@ -1,6 +1,6 @@
 from setuptools import setup
 
-setup(name='webservice_hidroweb',
+setup(name='webservice_hidro',
       version='0.0.1',
       description='Download hydrological data from Hidroweb-ANA',
       author='Marco Castro',
