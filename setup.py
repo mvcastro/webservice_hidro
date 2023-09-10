@@ -6,6 +6,5 @@ setup(name='webservice-hidro',
       description='Download hydrological data from Hidroweb-ANA Webservice',
       author='Marco Castro',
       author_email='mvcastro1975@gmail.com',
-      url='',
-      packages=['webservice_hidro', ]
+      url=''
  )
