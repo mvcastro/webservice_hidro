@@ -7,5 +7,5 @@ setup(name='webservice-hidro',
       author='Marco Castro',
       author_email='mvcastro1975@gmail.com',
       url='',
-      py_modules=[]
+      py_modules=['webservice_hidro', ]
  )
