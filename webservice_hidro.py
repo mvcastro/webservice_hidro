@@ -1,17 +1,38 @@
+from enum import IntEnum
 import xml.etree.ElementTree as ET
-from typing import Union
-
 import numpy as np
 import pandas as pd
 import requests
 
 
-def retorna_inventario(codEstDE: str = "", codEstATE: str = "",
-                       tpEst: str = "", nmEst: str = "",
-                       nmRio: str = "", codSubBacia: str = "",
-                       codBacia: str = "", nmMunicipio: str = "",
-                       nmEstado: str = "", sgResp: str = "",
-                       sgOper: str = "", telemetrica: str = "") -> pd.DataFrame:
+class TipoDeEstacao(IntEnum):
+    FLUVIOMETRICA = 1
+    PLUVIOMETRICA = 2
+
+
+class TipoDeDados(IntEnum):
+    COTAS = 1
+    CHUVAS = 2
+    VAZOES = 3
+
+
+class NivelDeConsistencia(IntEnum):
+    BRUTO = 1
+    CONSISTIDO = 2
+
+
+def retorna_inventario(codEstDE: str | int = "",
+                       codEstATE: str | int = "",
+                       tpEst: TipoDeEstacao | str | int = "",
+                       nmEst: str = "",
+                       nmRio: str = "",
+                       codSubBacia: str = "",
+                       codBacia: str = "",
+                       nmMunicipio: str = "",
+                       nmEstado: str = "",
+                       sgResp: str = "",
+                       sgOper: str = "",
+                       telemetrica: str | int = "") -> pd.DataFrame:
     """Inventário pluviométrico/fluviométrico atualizado.
 
     Args:
@@ -34,52 +55,35 @@ def retorna_inventario(codEstDE: str = "", codEstATE: str = "",
         DataFrame: Retorna DataFrame com as propriedades das estações selecionadas do Inventário.
     """
 
-    url_hidro1 = "http://telemetriaws1.ana.gov.br"
-    url_hidro2 = "/ServiceANA.asmx/HidroInventario?codEstDE={}".format(
-        codEstDE)
-    url_hidro3 = "&codEstATE={}&tpEst={}&nmEst={}&nmRio={}".format(
-        codEstATE, tpEst, nmEst, nmRio)
-    url_hidro4 = "&codSubBacia={}&codBacia={}&nmMunicipio={}".format(
-        codSubBacia, codBacia, nmMunicipio)
-    url_hidro5 = "&nmEstado={}&sgResp={}&sgOper={}&telemetrica={}".format(
-        nmEstado, sgResp, sgOper, telemetrica)
+    params = locals()
+    params['tpEst'] = tpEst.value if type(tpEst) == TipoDeEstacao else tpEst
 
-    url_hidro = url_hidro1 + url_hidro2 + url_hidro3 + url_hidro4 + url_hidro5
-
-    print(url_hidro)
-
-    resp = requests.get(url_hidro)
+    url_hidro_inventario = "http://telemetriaws1.ana.gov.br/ServiceANA.asmx/HidroInventario"
+    resp = requests.get(url_hidro_inventario, params=params)
     data = resp.content
     root = ET.XML(data)
-    inventario = {}
 
-    for elem in root:
-        for estacoes in elem:
-            for table in estacoes:
-                if table.tag == "Table":
-                    tabela = table.attrib.get(
-                        "{urn:schemas-microsoft-com:xml-diffgram-v1}id"
-                    )
-                    propriedades = {}
-                    for prop in table:
-                        # print(prop.tag, prop.text, prop.attrib)
-                        propriedades[prop.tag] = prop.text
-                        inventario[tabela] = propriedades
+    lista_dados = []
+    for estacao in root.iter("Table"):
+        dic_estacao = {}
+        for dado in estacao:
+            dic_estacao[dado.tag] = dado.text
+        lista_dados.append(dic_estacao)
 
-    lst_informacoes = [inventario[i] for i in inventario]
-
-    return pd.DataFrame(lst_informacoes)
+    return pd.DataFrame(lista_dados)
 
 
-def retorna_serie_historica(codEstacao: str, tiposDados: int,
-                            dataInicio: str = "", dataFim: str = "",
+def retorna_serie_historica(codEstacao: str | int,
+                            tipoDados: TipoDeDados,
+                            dataInicio: str = "",
+                            dataFim: str = "",
                             nivelConsistencia: int = 2) -> pd.DataFrame:
     """Retorna DataFrame da série histórica da estação selecionada
        no formato da tabela do HidroWeb.
 
     Args:
         codEstacao (str): Código Plu ou Flu.
-        tiposDados (int): 1-Cotas, 2-Chuvas ou 3-Vazões.
+        tipoDados (int): 1-Cotas, 2-Chuvas ou 3-Vazões.
         dataInicio (str): Data inicial. Formato: dd/mm/aaaa
         dataFim (str, optional): Data inicial. Formato: dd/mm/aaaa. Defaults to "".
                                  Caso não preenchido, trará até o último dado mais recente.
@@ -89,43 +93,24 @@ def retorna_serie_historica(codEstacao: str, tiposDados: int,
          DataFrame: Dicionário com os dados da série histórica.
     """
 
-    url_hidro1 = "http://telemetriaws1.ana.gov.br"
-    url_hidro2 = "/ServiceANA.asmx/HidroSerieHistorica?codEstacao={}&dataInicio={}".format(
-        codEstacao, dataInicio)
-    url_hidro3 = "&dataFim={}&tipoDados={}&nivelConsistencia={}".format(
-        dataFim, tiposDados, nivelConsistencia)
-
-    url_hidro = url_hidro1 + url_hidro2 + url_hidro3
-
-    print(url_hidro)
-
-    resp = requests.get(url_hidro)
+    params = locals()
+    params['tipoDados'] = tipoDados.value
+    url_hidro_serie_historica = "http://telemetriaws1.ana.gov.br/ServiceANA.asmx/HidroSerieHistorica"
+    resp = requests.get(url_hidro_serie_historica, params=params)
     data = resp.content
     root = ET.XML(data)
-    serie_historica = {}
 
-    for elem in root:
-        for estacoes in elem:
-            for dado in estacoes:
-                if dado.tag == "SerieHistorica":
-                    id_serie = dado.attrib.get(
-                        "{urn:schemas-microsoft-com:xml-diffgram-v1}id"
-                    )
-                    propriedades = {}
-                    for prop in dado:
-                        propriedades[prop.tag] = prop.text
-                        serie_historica[id_serie] = propriedades
+    serie_historica = []
+    for serie in root.iter("SerieHistorica"):
+        dic_serie = {}
+        for dado in serie:
+            dic_serie[dado.tag] = dado.text
+        serie_historica.append(dic_serie)
 
-    lst_informacoes = [serie_historica[i] for i in serie_historica]
-
-    serie_historica = pd.DataFrame(lst_informacoes)
-
-    # serie_historica.sort_values('DataHora', inplace=True)
-
-    return serie_historica
+    return pd.DataFrame(serie_historica)
 
 
-def __analise_datas(row: pd.Series) -> Union[np.datetime64, None]:
+def __analise_datas(row: pd.Series) -> np.datetime64 | None:
     """Define se existe a data no DataFrame da série histórica do HidroWeb.
 
     Args:
@@ -172,13 +157,12 @@ def reorganiza_serie_em_coluna(serie_historica: pd.DataFrame) -> pd.DataFrame:
 
     df_melt = df2.melt(id_vars=['DataHora'])
     df_melt['Data'] = pd.to_datetime(df_melt['DataHora'])
-    df_melt['Data2'] = df_melt.apply(__analise_datas, axis=1)
+    df_melt['Data2'] = df_melt.apply(__analise_datas, axis=1)  # type:ignore
     df_melt.sort_values('Data2', inplace=True)
 
     df_final = df_melt[['Data2', 'value']].copy()
-    df_final.columns = ['Data', 'Valor']
-    df_final.dropna(subset=['Data'], inplace=True)
-    df_final = df_final.astype({'Valor': float})
-    df_final.reset_index(drop=True, inplace=True)
-
-    return df_final
+    df_final.rename(columns={'Data2': 'Data', 'value': 'Valor'}, inplace=True)
+    df_final = df_final.dropna(subset=['Data'])\
+                       .astype({'Valor': float})\
+                       .reset_index(drop=True)
+    return df_final.sort_values('Data')
