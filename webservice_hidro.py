@@ -162,4 +162,5 @@ def reorganiza_serie_em_coluna(serie_historica: pd.DataFrame) -> pd.DataFrame:
     df_final = df_final.dropna(subset=['Data'])\
                        .astype({'Valor': float})\
                        .set_index('Data', drop=True)
+
     return df_final.sort_index()
