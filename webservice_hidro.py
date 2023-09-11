@@ -110,7 +110,7 @@ def retorna_serie_historica(codEstacao: str | int,
     return pd.DataFrame(serie_historica)
 
 
-def __analise_datas(row: pd.Series) -> np.datetime64 | None:
+def __analise_datas(row, variable: str) -> np.datetime64 | None:
     """Define se existe a data no DataFrame da série histórica do HidroWeb.
 
     Args:
@@ -120,18 +120,20 @@ def __analise_datas(row: pd.Series) -> np.datetime64 | None:
         np.datetime64 or None : Retorna data.
     """
     data = row['Data']
-    var = row['variable']
+    dado_var = row['variable']
 
-    if var == 'Vazao31' and data.month in (4, 6, 9, 11):
+    dias_finais_do_mes = [f'{variable}{i}' for i in (29, 30, 31)]
+
+    if dado_var == dias_finais_do_mes[-1] and data.month in (4, 6, 9, 11):
         return None
 
-    if (not data.is_leap_year and data.month == 2 and var in ('Vazao29', 'Vazao30', 'Vazao31')):
+    if (not data.is_leap_year and data.month == 2 and dado_var in dias_finais_do_mes):
         return None
 
-    if (data.is_leap_year and data.month == 2 and var in ('Vazao30', 'Vazao31')):
+    if (data.is_leap_year and data.month == 2 and dado_var in dias_finais_do_mes[1:]):
         return None
 
-    result = data + np.timedelta64(int(var[5:])-1, 'D')
+    result = data + np.timedelta64(int(dado_var[5:])-1, 'D')
 
     return result
 
@@ -148,21 +150,16 @@ def reorganiza_serie_em_coluna(serie_historica: pd.DataFrame) -> pd.DataFrame:
     """
 
     var = serie_historica.columns[-2][:-8]
+    colunas = [f"{var}{i:02}" for i in range(1, 32)]
 
-    colunas1 = [f'{var}0' + str(i) for i in range(1, 10)]
-    colunas2 = [var + str(i) for i in range(10, 32)]
-    colunas = colunas1 + colunas2
-
-    df2 = serie_historica[['DataHora'] + colunas]
-
-    df_melt = df2.melt(id_vars=['DataHora'])
+    df2 = serie_historica[['DataHora', 'NivelConsistencia'] + colunas]
+    df_melt = df2.melt(id_vars=['DataHora', 'NivelConsistencia'])
     df_melt['Data'] = pd.to_datetime(df_melt['DataHora'])
-    df_melt['Data2'] = df_melt.apply(__analise_datas, axis=1)  # type:ignore
-    df_melt.sort_values('Data2', inplace=True)
+    df_melt['Data2'] = df_melt.apply(__analise_datas, args=(var,), axis=1)  # type:ignore
 
-    df_final = df_melt[['Data2', 'value']].copy()
+    df_final = df_melt[['Data2', 'value', 'NivelConsistencia']].copy()
     df_final.rename(columns={'Data2': 'Data', 'value': 'Valor'}, inplace=True)
     df_final = df_final.dropna(subset=['Data'])\
                        .astype({'Valor': float})\
-                       .reset_index(drop=True)
-    return df_final.sort_values('Data')
+                       .set_index('Data', drop=True)
+    return df_final.sort_index()
