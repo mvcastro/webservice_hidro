@@ -160,6 +160,8 @@ def reorganiza_serie_em_coluna(serie_historica: pd.DataFrame) -> pd.DataFrame:
     df_final = df_melt[['Data2', 'value', 'NivelConsistencia']].copy()
     df_final.rename(columns={'Data2': 'Data', 'value': 'Valor'}, inplace=True)
     df_final = df_final.dropna(subset=['Data'])\
+                       .sort_values(by=['Data', 'NivelConsistencia'])\
+                       .drop_duplicates(subset=['Data'], keep='last')\
                        .astype({'Valor': float})\
                        .set_index('Data', drop=True)
 
