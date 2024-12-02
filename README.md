@@ -81,4 +81,4 @@ plt.show()
 
 ~~~~
 
-![Figura](Figure.png)
+![Figura](assets/Figure.png)

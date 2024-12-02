@@ -9,30 +9,30 @@ class TipoDeEstacao(IntEnum):
     FLUVIOMETRICA = 1
     PLUVIOMETRICA = 2
 
-
 class TipoDeDados(IntEnum):
     COTAS = 1
     CHUVAS = 2
     VAZOES = 3
-
 
 class NivelDeConsistencia(IntEnum):
     BRUTO = 1
     CONSISTIDO = 2
 
 
-def retorna_inventario(codEstDE: str | int = "",
-                       codEstATE: str | int = "",
-                       tpEst: TipoDeEstacao | str | int = "",
-                       nmEst: str = "",
-                       nmRio: str = "",
-                       codSubBacia: str = "",
-                       codBacia: str = "",
-                       nmMunicipio: str = "",
-                       nmEstado: str = "",
-                       sgResp: str = "",
-                       sgOper: str = "",
-                       telemetrica: str | int = "") -> pd.DataFrame:
+def retorna_inventario(
+    codEstDE: str | int = "",
+    codEstATE: str | int = "",
+    tpEst: TipoDeEstacao | str | int = "",
+    nmEst: str = "",
+    nmRio: str = "",
+    codSubBacia: str = "",
+    codBacia: str = "",
+    nmMunicipio: str = "",
+    nmEstado: str = "",
+    sgResp: str = "",
+    sgOper: str = "",
+    telemetrica: str | int = ""
+) -> pd.DataFrame:
     """Inventário pluviométrico/fluviométrico atualizado.
 
     Args:
@@ -73,11 +73,13 @@ def retorna_inventario(codEstDE: str | int = "",
     return pd.DataFrame(lista_dados)
 
 
-def retorna_serie_historica(codEstacao: str | int,
-                            tipoDados: TipoDeDados,
-                            dataInicio: str = "",
-                            dataFim: str = "",
-                            nivelConsistencia: int = 2) -> pd.DataFrame:
+def retorna_serie_historica(
+    codEstacao: str | int,
+    tipoDados: TipoDeDados,
+    dataInicio: str = "",
+    dataFim: str = "",
+    nivelConsistencia: int = 2
+) -> pd.DataFrame:
     """Retorna DataFrame da série histórica da estação selecionada
        no formato da tabela do HidroWeb.
 
