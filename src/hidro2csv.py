@@ -1,12 +1,18 @@
 import os
-import src.webservice_hidro as hidro
+
+import geopandas as gpd
+import matplotlib.pyplot as plt
+import pandas as pd
+
+import webservice_hidro as hidro
+
 
 
 def exporta_dados_hidro():
 
     codEstDE = input('Código de 8 dígitos da estação - INICIAL (Ex.: 00047000):')
     codEstATE = input('Código de 8 dígitos da estação - FINAL (Ex.: 90300000):')
-    tipo_estacao = input('Tipo da estação (1-Flu ou 2-Plu):')
+    tpEst = input('Tipo da estação (1-Flu ou 2-Plu):')
     nmEst = input('Nome da Estação (Ex.: Barra Mansa):')
     nmRio = input('Nome do Rio (Ex.: Rio Javari):')
     codSubBacia = input('Código da Sub-Bacia hidrografica (Ex.: 10):')
@@ -32,7 +38,7 @@ def exporta_dados_hidro():
     df_hidro = hidro.retorna_inventario(
         codEstDE=codEstDE,
         codEstATE=codEstATE,
-        tipo_estacao=tipo_estacao,
+        tpEst=tpEst,
         nmEst=nmEst,
         nmRio=nmRio,
         codSubBacia=codSubBacia,
@@ -85,5 +91,75 @@ def exporta_dados_hidro():
             df_serie.to_csv(file_path, index=False, sep=";", decimal=",")
 
 
-if __name__ == "__main__":
-    exporta_dados_hidro()
+def exporta_dados_hidro_por_geometria(
+    caminho_geometria: str,
+    tipo_de_dados: hidro.TipoDeDados,
+    diretorio_saida: str,
+    data_inicial: str = '01/01/1900',
+    data_final: str = ''
+) -> None:
+    """Exporta dados das Estações em arquiovs CSV que interseccionam a geometria
+        passada como parâmetro em formato shape pu geopackage
+
+    Args:
+        caminho_geometria (str): Caminho onde se encontra o qruivos com a geometria
+            [Shape (.shp) ou Geopackage (.gpkg)]
+        tipo_de_dados (hidro.TipoDeDados): Tipo de Dado: 1=COTAS; 2=CHUVAS; 3=VAZOES
+        diretorio_saida (str): Diretório onde se deseja salvar os arquivos CSV
+        data_inicial (str, optional): Data inicial das séries temporais. Defaults to '01/01/1900'.
+        data_final (str, optional): Data Final das séries temporais. Defaults to ''.
+    """
+    
+    gdf = gpd.read_file(filename=caminho_geometria)
+    
+    if gdf.shape[0] == 1:
+        geometria_poligono = gdf.geometry
+    else:
+        geometria_poligono = gdf.geometry.unary_union
+        
+    if tipo_de_dados in [hidro.TipoDeDados.COTAS, hidro.TipoDeDados.VAZOES]:
+        tipo_estacao = hidro.TipoDeEstacao.FLUVIOMETRICA
+    else:
+        tipo_estacao = hidro.TipoDeEstacao.PLUVIOMETRICA
+        
+    # Requisita do webserice o DataFrame de dados
+    # do inventário de estações selecionadas
+    df_hidro = hidro.retorna_inventario(tpEst=tipo_estacao)
+    geometria_estacoes = gpd.points_from_xy(
+        x=df_hidro['Longitude'],
+        y=df_hidro['Latitude'],
+        crs='EPSG:4674'
+    )
+    gdf_estacoes = gpd.GeoDataFrame(df_hidro, geometry=geometria_estacoes)
+    
+    codigo_estacoes_selecionadas = [
+        estacao['Codigo'] for _, estacao in gdf_estacoes.iterrows()
+        if estacao.geometry.intersects(geometria_poligono).any()
+    ]
+    
+    print(f'Foram identificados {len(codigo_estacoes_selecionadas)} estações '
+          'que se encontram no interior do polígono!')
+    
+    for codigo_estacao in codigo_estacoes_selecionadas:
+        print(f'Buscando dados para a estação com código {codigo_estacao}...')
+    
+        df_serie = hidro.retorna_serie_historica(
+            codEstacao=codigo_estacao,
+            tipoDados=tipo_de_dados,
+            dataInicio=data_inicial,
+            dataFim=data_final
+        )
+        
+        if df_serie.empty:
+            print(
+                f'Estação com código {codigo_estacao} não apresenta dados para '
+                'o período selecionado.'
+            )
+            continue
+        
+        hidro.reorganiza_serie_em_coluna(df_serie)\
+             .to_csv(os.path.join(diretorio_saida, f'dados_estacao_{codigo_estacao}.csv'))
+        
+        print(f'Dados da estação {codigo_estacao} salvos em arquivo CSV.')
+
+
