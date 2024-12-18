@@ -111,11 +111,7 @@ def exporta_dados_hidro_por_geometria(
     """
     
     gdf = gpd.read_file(filename=caminho_geometria)
-    
-    if gdf.shape[0] == 1:
-        geometria_poligono = gdf.geometry
-    else:
-        geometria_poligono = gdf.geometry.unary_union
+    geometria_poligono = gdf.geometry.unary_union
         
     if tipo_de_dados in [hidro.TipoDeDados.COTAS, hidro.TipoDeDados.VAZOES]:
         tipo_estacao = hidro.TipoDeEstacao.FLUVIOMETRICA
