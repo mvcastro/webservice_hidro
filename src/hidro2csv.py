@@ -134,7 +134,7 @@ def exporta_dados_hidro_por_geometria(
     
     codigo_estacoes_selecionadas = [
         estacao['Codigo'] for _, estacao in gdf_estacoes.iterrows()
-        if estacao.geometry.intersects(geometria_poligono).any()
+        if estacao.geometry.intersects(geometria_poligono)
     ]
     
     print(f'Foram identificados {len(codigo_estacoes_selecionadas)} estações '
