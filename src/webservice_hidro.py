@@ -84,7 +84,6 @@ def retorna_inventario(
         "sgOper": sgOper,
         "telemetrica": telemetrica,
     }
-    # params['tpEst'] = tpEst.value if type(tpEst) == TipoDeEstacao else tpEst
 
     url_hidro_inventario = (
         "http://telemetriaws1.ana.gov.br/ServiceANA.asmx/HidroInventario"
@@ -128,8 +127,6 @@ def retorna_serie_historica(
         "dataFim": dataFim,
         "nivelConsistencia": nivelConsistencia,
     }
-    print(params)
-    # params['tipoDados'] = tipoDados.value
     url_hidro_serie_historica = (
         "http://telemetriaws1.ana.gov.br/ServiceANA.asmx/HidroSerieHistorica"
     )
@@ -193,4 +190,7 @@ def reorganiza_serie_em_coluna(
             except ValueError:
                 continue
 
-    return pd.DataFrame(pivot_rain_data).set_index("Data", drop=True).sort_index()
+    df = pd.DataFrame(pivot_rain_data)
+    df['Data'] = pd.to_datetime(df.Data)
+
+    return df.set_index("Data", drop=True).sort_index()
