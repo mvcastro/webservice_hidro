@@ -27,13 +27,13 @@ Resultado (10 primeiras colunas):
 ```python
 
 from enums_hidro import NivelDeConsistencia
-from webservice_hidro import retorna_inventario
+from webservice_hidro import retorna_serie_historica
 
 # Seleção dos dados brutos de vazão da estação fluviométrica
 # PIRANHAS - Código: 49330000 em Piranhas/Alagoas para o ano de 2021
 serie_historica = retorna_serie_historica(
     codEstacao=49330000,
-    tiposDados=3,
+    tipoDados=3,
     dataInicio="01/01/2021",
     dataFim="31/12/2021",
     nivelConsistencia=NivelDeConsistencia.BRUTO
@@ -69,19 +69,20 @@ print(serie_em_coluna.head())
 
 Resultado:
 
-|    | Data                |   Valor |
-|---:|:--------------------|--------:|
-|  0 | 2021-01-01 00:00:00 | 1667.93 |
-|  1 | 2021-01-02 00:00:00 | 1550.98 |
-|  2 | 2021-01-03 00:00:00 | 1197.93 |
-|  3 | 2021-01-04 00:00:00 | 1152.32 |
-|  4 | 2021-01-05 00:00:00 | 1111.54 |
+|            | EstacaoCodigo | NivelConsistencia |   Vazao |
+|:---------- |--------------:|------------------:|--------:|
+| Data       |               |                   |         |
+| 2021-01-01 |      49330000 |                 2 | 1667.93 |
+| 2021-01-02 |      49330000 |                 2 | 1550.98 |
+| 2021-01-03 |      49330000 |                 2 | 1197.93 |
+| 2021-01-04 |      49330000 |                 2 | 1152.32 |
+| 2021-01-05 |      49330000 |                 2 | 1111.54 |
 
 ```python
 
 from matplotlib import pyplot as plt
 
-plt.plot(serie_em_coluna.Data, serie_em_coluna.Valor)
+serie_em_coluna[['Vazao']].plot()
 
 plt.show()
 
