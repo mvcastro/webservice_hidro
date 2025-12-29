@@ -1,9 +1,10 @@
 # webservice_hidro
+
 Python scripts to extract data from HIDRO Webservice (ANA)
 
-Scripts em Python para extrair os dados requisitados do Webservice HIDRO da Agência Nacional de Águas (ANA),  armazenando-os em um pandas DataFrame.
+Scripts em Python para extrair os dados requisitados do Webservice HIDRO da Agência Nacional de Águas (ANA),  armazenando-os em um Pandas DataFrame.
 
-~~~~python
+```python
 
 from webservice_hidro import retorna_inventario
 
@@ -12,7 +13,7 @@ inventario = retorna_inventario(tpEst=1, nmEstado="ALAGOAS")
 
 print(inventario.head())
 
-~~~~
+```
 
 Resultado (10 primeiras colunas):
 |    |   BaciaCodigo |   SubBaciaCodigo |   RioCodigo | RioNome      |   EstadoCodigo | nmEstado   |   MunicipioCodigo | nmMunicipio        |   ResponsavelCodigo | ResponsavelSigla   |
@@ -23,20 +24,24 @@ Resultado (10 primeiras colunas):
 |  3 |             3 |               39 |    39751500 | RIO MARAGOGI |             13 | ALAGOAS    |          13045000 | MARAGOGI           |                 121 | SEMARH-AL          |
 |  4 |             3 |               39 |    39753500 | RIO MANGUABA |             13 | ALAGOAS    |          13073000 | PORTO CALVO        |                   1 | ANA                |
 
+```python
 
-~~~~python
-
+from enums_hidro import NivelDeConsistencia
 from webservice_hidro import retorna_inventario
 
 # Seleção dos dados brutos de vazão da estação fluviométrica
 # PIRANHAS - Código: 49330000 em Piranhas/Alagoas para o ano de 2021
-serie_historica = retorna_serie_historica(codEstacao=49330000, tiposDados=3,
-                            dataInicio="01/01/2021", dataFim="31/12/2021",
-                            nivelConsistencia=1)
+serie_historica = retorna_serie_historica(
+    codEstacao=49330000,
+    tiposDados=3,
+    dataInicio="01/01/2021",
+    dataFim="31/12/2021",
+    nivelConsistencia=NivelDeConsistencia.BRUTO
+)
 
 print(serie_historica.head())
 
-~~~~
+```
 
 Resultado (10 primeiras colunas):
 
@@ -48,17 +53,19 @@ Resultado (10 primeiras colunas):
 |  3 |        49330000 |                   1 | 2021-06-01 00:00:00 |             1 |                      1 |  1100.58 |  699.596 |  910.406 |           7 |          30 |
 |  4 |        49330000 |                   1 | 2021-05-01 00:00:00 |             1 |                      1 |  1115.21 |  762.053 | 1024.48  |           4 |          24 |
 
+```python
 
-
-~~~~python
-
+from enums_hidro import TipoDeVariavel
 from webservice_hidro import reorganiza_serie_em_coluna
 
-serie_em_coluna = reorganiza_serie_em_coluna(serie_historica)
+serie_em_coluna = reorganiza_serie_em_coluna(
+    dados_api=serie_historica, # Série Histórica em formato de DataFrame
+    variavel=TipoDeVariavel.VAZAO
+)
 
 print(serie_em_coluna.head())
 
-~~~~
+```
 
 Resultado:
 
@@ -70,8 +77,7 @@ Resultado:
 |  3 | 2021-01-04 00:00:00 | 1152.32 |
 |  4 | 2021-01-05 00:00:00 | 1111.54 |
 
-
-~~~~python
+```python
 
 from matplotlib import pyplot as plt
 
@@ -79,6 +85,6 @@ plt.plot(serie_em_coluna.Data, serie_em_coluna.Valor)
 
 plt.show()
 
-~~~~
+```
 
 ![Figura](assets/Figure.png)
