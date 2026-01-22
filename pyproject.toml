@@ -1,6 +1,6 @@
 [project]
 name = "webservice-hidro"
-version = "0.2.0"
+version = "0.2.1"
 description = "Download hydrological data from Hidroweb-ANA Webservice"
 authors = [{ name = "mvcastro", email = "mvcastro1975@gmail.com" }]
 license = "MIT"
