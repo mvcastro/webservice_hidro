@@ -1,4 +1,5 @@
 import unittest
+from typing import Any
 from unittest.mock import Mock, patch
 
 import pandas as pd
@@ -36,18 +37,18 @@ SERIE_XML = b"""
     </NewDataSet>
 """
 
+
 class TestWebServiceFunctions(unittest.TestCase):
     @patch("src.webservice_hidro.requests.get")
-    def test_retorna_inventario(self, mock_get):
+    def test_retorna_inventario(self, mock_get: Mock):
         mock_get.return_value = Mock(content=INVENTARIO_XML)
         df = retorna_inventario(codEstDE="12345678", tpEst=TipoDeEstacao.FLUVIOMETRICA)
         assert not df.empty
         assert "EstacaoCodigo" in df.columns
         assert df.iloc[0]["EstacaoCodigo"] == "12345678"
 
-
     @patch("src.webservice_hidro.requests.get")
-    def test_retorna_serie_historica(self, mock_get):
+    def test_retorna_serie_historica(self, mock_get: Mock):
         mock_get.return_value = Mock(content=SERIE_XML)
         df = retorna_serie_historica(
             codEstacao="12345678",
@@ -60,10 +61,9 @@ class TestWebServiceFunctions(unittest.TestCase):
         assert df.iloc[0]["EstacaoCodigo"] == "12345678"
         assert df.iloc[0]["Chuva01"] == "10.0"
 
-
     def test_reorganiza_serie_em_coluna(self):
         # Prepare input DataFrame
-        data = {
+        data: dict[str, Any] = {
             "EstacaoCodigo": [12345678],
             "DataHora": ["2024-06-01"],
             "NivelConsistencia": [2],

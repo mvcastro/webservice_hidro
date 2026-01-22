@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from datetime import date
 from typing import Literal
 
-from enums_hidro import NivelDeConsistencia
+from .enums_hidro import NivelDeConsistencia
 
 
 @dataclass

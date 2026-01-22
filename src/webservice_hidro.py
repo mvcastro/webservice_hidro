@@ -5,8 +5,8 @@ from datetime import date
 import pandas as pd
 import requests
 
-from models import PivotChuva, PivotCota, PivotVazao
-from enums_hidro import (
+from .models import PivotChuva, PivotCota, PivotVazao
+from .enums_hidro import (
     Telemetrica,
     TipoDeDados,
     TipoDeEstacao,
@@ -59,7 +59,7 @@ def retorna_inventario(
         DataFrame: Retorna DataFrame com as propriedades das estações selecionadas do Inventário.
     """
 
-    params = {
+    params: dict[str, str | int] = {
         "codEstDE": codEstDE,
         "codEstATE": codEstATE,
         "tpEst": tpEst,
@@ -81,7 +81,7 @@ def retorna_inventario(
     data = resp.content
     root = ET.XML(data)
 
-    lista_dados = []
+    lista_dados: list[dict[str, str | None]] = []
     for estacao in root.iter("Table"):
         lista_dados.append({dado.tag: dado.text for dado in estacao})
     return pd.DataFrame(lista_dados)
@@ -109,7 +109,7 @@ def retorna_serie_historica(
          DataFrame: Dicionário com os dados da série histórica.
     """
 
-    params = {
+    params: dict[str, str | int] = {
         "codEstacao": codEstacao,
         "tipoDados": tipoDados,
         "dataInicio": dataInicio,
@@ -128,7 +128,7 @@ def retorna_serie_historica(
         message = errorTable[0].findtext('Error')
         raise ValueError(message)
 
-    serie_historica = []
+    serie_historica: list[dict[str, str | None]] = []
     for serie in root.iter("SerieHistorica"):
         serie_historica.append({dado.tag: dado.text for dado in serie})
     return pd.DataFrame(serie_historica)
@@ -163,7 +163,7 @@ def reorganiza_serie_em_coluna(
     ]
     df = dados_api[data_attrs].copy()
     df["DataHora"] = pd.to_datetime(df.DataHora)
-    pivot_rain_data: list[dict] = []
+    pivot_rain_data: list[dict[str, float | None]] = []
 
     for _, row in df.iterrows():
         codigo_estacao = row.EstacaoCodigo
