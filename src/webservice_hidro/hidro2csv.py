@@ -2,12 +2,13 @@ import os
 
 import geopandas as gpd
 
-import webservice_hidro as hidro
+from webservice_hidro import webservice_access as hidro
+from webservice_hidro import enums_hidro as eh
 
 ASSOCIACAO_VARIAVEL_TIPO_DADO = {
-    hidro.TipoDeDados.COTAS: hidro.TipoDeVariavel.COTA,
-    hidro.TipoDeDados.CHUVAS: hidro.TipoDeVariavel.CHUVA,
-    hidro.TipoDeDados.VAZOES: hidro.TipoDeVariavel.VAZAO,
+    eh.TipoDeDados.COTAS: eh.TipoDeVariavel.COTA,
+    eh.TipoDeDados.CHUVAS: eh.TipoDeVariavel.CHUVA,
+    eh.TipoDeDados.VAZOES: eh.TipoDeVariavel.VAZAO,
 }
 
 def exporta_dados_hidro():
@@ -38,7 +39,7 @@ def exporta_dados_hidro():
 
     # Requisita do webserice o DataFrame de dados
     # do inventário de estações selecionadas
-    df_hidro = hidro.retorna_inventario(
+    df_hidro = hidro.retorna_inventario_em_dataframe(
         codEstDE=codEstDE,
         codEstATE=codEstATE,
         tpEst=tpEst,
@@ -66,8 +67,8 @@ def exporta_dados_hidro():
         cod_estacao = row["Codigo"]
 
         # Estacao Fluviometrica
-        if tipo_estacao == hidro.TipoDeEstacao.FLUVIOMETRICA.value:
-            for tipo_dados in [hidro.TipoDeDados.COTAS, hidro.TipoDeDados.VAZOES]:
+        if tipo_estacao == eh.TipoDeEstacao.FLUVIOMETRICA.value:
+            for tipo_dados in [eh.TipoDeDados.COTAS, eh.TipoDeDados.VAZOES]:
                 df_serie = hidro.retorna_serie_historica(
                     codEstacao=cod_estacao,
                     tipoDados=tipo_dados,

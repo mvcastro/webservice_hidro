@@ -5,13 +5,13 @@ from datetime import date
 import pandas as pd
 import requests
 
-from .models import PivotChuva, PivotCota, PivotVazao
 from .enums_hidro import (
     Telemetrica,
     TipoDeDados,
     TipoDeEstacao,
     TipoDeVariavel,
 )
+from .models import Inventario, PivotChuva, PivotCota, PivotVazao
 
 type PivotSerieType = type[PivotCota] | type[PivotChuva] | type[PivotVazao]
 type PivotSerieInstance = PivotCota | PivotChuva | PivotVazao
@@ -36,14 +36,15 @@ def retorna_inventario(
     sgResp: str = "",
     sgOper: str = "",
     telemetrica: Telemetrica | str | int = "",
-) -> pd.DataFrame:
+) -> list[Inventario]:
     """Inventário pluviométrico/fluviométrico atualizado.
 
     Args:
         codEstDE (str, optional): Código de 8 dígitos da estação
-                                    - INICIAL (Ex.: 00047000). Defaults to "".
+          - INICIAL (Ex.: 00047000). Defaults to "".
         codEstATE (str, optional): Código de 8 dígitos da estação
-                                    - FINAL (Ex.: 90300000). Defaults to "".
+          
+          - FINAL (Ex.: 90300000). Defaults to "".
         tpEst (str, optional): Tipo da estação (1-Flu ou 2-Plu). Defaults to "".
         nmEst (str, optional): Nome da Estação (Ex.: Barra Mansa). Defaults to "".
         nmRio (str, optional): Nome do Rio (Ex.: Rio Javari). Defaults to "".
@@ -56,7 +57,8 @@ def retorna_inventario(
         telemetrica (str, optional): (Ex: 1-SIM ou 0-NÃO). Defaults to "".
 
     Returns:
-        DataFrame: Retorna DataFrame com as propriedades das estações selecionadas do Inventário.
+        list[Inventario]: Retorna uma `list` com dicionário do Tipo `Inventario` com as
+            propriedades das estações selecionadas do Inventário.
     """
 
     params: dict[str, str | int] = {
@@ -81,10 +83,67 @@ def retorna_inventario(
     data = resp.content
     root = ET.XML(data)
 
-    lista_dados: list[dict[str, str | None]] = []
+    inventarios: list[Inventario] = []
     for estacao in root.iter("Table"):
-        lista_dados.append({dado.tag: dado.text for dado in estacao})
-    return pd.DataFrame(lista_dados)
+        inventario = {dado.tag: dado.text for dado in estacao}
+        inventarios.append(Inventario(**inventario))
+
+    return inventarios
+
+
+def retorna_inventario_em_dataframe(
+    codEstDE: str | int = "",
+    codEstATE: str | int = "",
+    tpEst: TipoDeEstacao | str | int = "",
+    nmEst: str = "",
+    nmRio: str = "",
+    codSubBacia: str = "",
+    codBacia: str = "",
+    nmMunicipio: str = "",
+    nmEstado: str = "",
+    sgResp: str = "",
+    sgOper: str = "",
+    telemetrica: Telemetrica | str | int = "",
+) -> pd.DataFrame:
+    """Inventário pluviométrico/fluviométrico atualizado.
+
+    Args:
+        codEstDE (str, optional): Código de 8 dígitos da estação
+          - INICIAL (Ex.: 00047000). Defaults to "".
+        codEstATE (str, optional): Código de 8 dígitos da estação
+          - FINAL (Ex.: 90300000). Defaults to "".
+        tpEst (str, optional): Tipo da estação (1-Flu ou 2-Plu). Defaults to "".
+        nmEst (str, optional): Nome da Estação (Ex.: Barra Mansa). Defaults to "".
+        nmRio (str, optional): Nome do Rio (Ex.: Rio Javari). Defaults to "".
+        codSubBacia (str, optional): Código da Sub-Bacia hidrografica (Ex.: 10). Defaults to "".
+        codBacia (str, optional): Código da Bacia hidrografica (Ex.: 1). Defaults to "".
+        nmMunicipio (str, optional): Município (Ex.: Itaperuna). Defaults to "".
+        nmEstado (str, optional): Estado (Ex.: Rio de Janeiro). Defaults to "".
+        sgResp (str, optional): Sigla do Responsável pela estação (Ex.: ANA). Defaults to "".
+        sgOper (str, optional): Sigla da Operadora da estação (Ex.: CPRM). Defaults to "".
+        telemetrica (str, optional): (Ex: 1-SIM ou 0-NÃO). Defaults to "".
+
+    Returns:
+        DataFrame: Retorna DataFrame com as propriedades das estações selecionadas do Inventário.
+    """
+    params: dict[str, str] = {
+        "codEstDE": str(codEstDE),
+        "codEstATE": str(codEstATE),
+        "tpEst": str(tpEst),
+        "nmEst": nmEst,
+        "nmRio": nmRio,
+        "codSubBacia": codSubBacia,
+        "codBacia": codBacia,
+        "nmMunicipio": nmMunicipio,
+        "nmEstado": nmEstado,
+        "sgResp": sgResp,
+        "sgOper": sgOper,
+        "telemetrica": str(telemetrica),
+    }
+
+    dados = retorna_inventario(**params)
+
+    return pd.DataFrame(dados)
 
 
 def retorna_serie_historica(
@@ -102,7 +161,7 @@ def retorna_serie_historica(
         tipoDados (int): 1-Cotas, 2-Chuvas ou 3-Vazões.
         dataInicio (str): Data inicial. Formato: dd/mm/aaaa
         dataFim (str, optional): Data inicial. Formato: dd/mm/aaaa. Defaults to "".
-                                 Caso não preenchido, trará até o último dado mais recente.
+          Caso não preenchido, trará até o último dado mais recente.
         nivelConsistencia (int, optional): 1-Bruto ou 2-Consistido. Defaults to 2.
 
     Returns:
@@ -125,7 +184,7 @@ def retorna_serie_historica(
 
     errorTable = root.findall(".//ErrorTable")
     if errorTable:
-        message = errorTable[0].findtext('Error')
+        message = errorTable[0].findtext("Error")
         raise ValueError(message)
 
     serie_historica: list[dict[str, str | None]] = []
@@ -152,7 +211,7 @@ def reorganiza_serie_em_coluna(
             f"O tipo de variável '{variavel}' não é válido. "
             f"Use um dos seguintes: {[member.value for member in TipoDeVariavel]}"
         )
-        
+
     if not any(coluna.startswith(variavel) for coluna in dados_api.columns):
         raise ValueError(
             f"A variável '{variavel}' não está presente nas colunas do DataFrame fornecido."

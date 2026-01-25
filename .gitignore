@@ -162,4 +162,5 @@ cython_debug/
 #.idea/
 
 
-testes.py
+# Github Prompts
+.github/

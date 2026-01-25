@@ -9,7 +9,99 @@ Scripts em Python para extrair os dados requisitados do Webservice HIDRO da Agê
 from webservice_hidro import retorna_inventario
 
 # Seleção do inventário de estações fluviométricas no Estado de Alagoas
+# Retorna uma lista de Dicionários do tipo Inventário
 inventario = retorna_inventario(tpEst=1, nmEstado="ALAGOAS")
+
+print(inventario[0])  # Mostra o primeiro item com todos os campos
+
+```
+
+Os campos do TypedDict `Inventario` incluem:
+
+```python
+{
+    "BaciaCodigo": str | None,
+    "SubBaciaCodigo": str | None,
+    "RioCodigo": str | None,
+    "RioNome": str | None,
+    "EstadoCodigo": str | None,
+    "nmEstado": str | None,
+    "MunicipioCodigo": str | None,
+    "nmMunicipio": str | None,
+    "ResponsavelCodigo": str | None,
+    "ResponsavelSigla": str | None,
+    "ResponsavelUnidade": str | None,
+    "ResponsavelJurisdicao": str | None,
+    "OperadoraCodigo": str | None,
+    "OperadoraSigla": str | None,
+    "OperadoraUnidade": str | None,
+    "OperadoraSubUnidade": str | None,
+    "TipoEstacao": str | None,
+    "Codigo": str | None,
+    "Nome": str | None,
+    "CodigoAdicional": str | None,
+    "Latitude": str | None,
+    "Longitude": str | None,
+    "Altitude": str | None,
+    "AreaDrenagem": str | None,
+    "TipoEstacaoEscala": str | None,
+    "TipoEstacaoRegistradorNivel": str | None,
+    "TipoEstacaoDescLiquida": str | None,
+    "TipoEstacaoSedimentos": str | None,
+    "TipoEstacaoQualAgua": str | None,
+    "TipoEstacaoPluviometro": str | None,
+    "TipoEstacaoRegistradorChuva": str | None,
+    "TipoEstacaoTanqueEvapo": str | None,
+    "TipoEstacaoClimatologica": str | None,
+    "TipoEstacaoPiezometria": str | None,
+    "TipoEstacaoTelemetrica": str | None,
+    "PeriodoEscalaInicio": str | None,
+    "PeriodoEscalaFim": str | None,
+    "PeriodoRegistradorNivelInicio": str | None,
+    "PeriodoRegistradorNivelFim": str | None,
+    "PeriodoDescLiquidaInicio": str | None,
+    "PeriodoDescLiquidaFim": str | None,
+    "PeriodoSedimentosInicio": str | None,
+    "PeriodoSedimentosFim": str | None,
+    "PeriodoQualAguaInicio": str | None,
+    "PeriodoQualAguaFim": str | None,
+    "PeriodoPluviometroInicio": str | None,
+    "PeriodoPluviometroFim": str | None,
+    "PeriodoRegistradorChuvaInicio": str | None,
+    "PeriodoRegistradorChuvaFim": str | None,
+    "PeriodoTanqueEvapoInicio": str | None,
+    "PeriodoTanqueEvapoFim": str | None,
+    "PeriodoClimatologicaInicio": str | None,
+    "PeriodoClimatologicaFim": str | None,
+    "PeriodoPiezometriaInicio": str | None,
+    "PeriodoPiezometriaFim": str | None,
+    "PeriodoTelemetricaInicio": str | None,
+    "PeriodoTelemetricaFim": str | None,
+    "TipoRedeBasica": str | None,
+    "TipoRedeEnergetica": str | None,
+    "TipoRedeNavegacao": str | None,
+    "TipoRedeCursoDagua": str | None,
+    "TipoRedeEstrategica": str | None,
+    "TipoRedeCaptacao": str | None,
+    "TipoRedeSedimentos": str | None,
+    "TipoRedeQualAgua": str | None,
+    "TipoRedeClasseVazao": str | None,
+    "UltimaAtualizacao": str | None,
+    "Operando": str | None,
+    "Descricao": str | None,
+    "NumImagens": str | None,
+    "DataIns": str | None,
+    "DataAlt": str | None
+}
+```
+Alternativamente, pode-se aplicar a função `retorna_inventario_em_dataframe` para obter-se um DataFrame com o inventário de estações desejadas com os tipos de dados dos campos já identificados e convertidos.
+
+```python
+
+from webservice_hidro import retorna_inventario_em_dataframe
+
+# Seleção do inventário de estações fluviométricas no Estado de Alagoas
+inventario = retorna_inventario_em_dataframe(tpEst=1, nmEstado="ALAGOAS")
 
 print(inventario.head())
 
