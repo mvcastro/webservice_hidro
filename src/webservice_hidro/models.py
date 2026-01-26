@@ -81,6 +81,20 @@ class Inventario(TypedDict):
     DataAlt: str | None
 
 
+class Rio(TypedDict):
+    BaciaCodigo: int
+    SubBaciaCodigo: int
+    Codigo: int
+    Nome: str
+
+
+class Subbacia(TypedDict):
+    codBacia: int
+    nmBacia: int
+    codSubBacia: int
+    nmSubBacia: str
+
+
 @dataclass
 class PivotSerie(ABC):
     EstacaoCodigo: int

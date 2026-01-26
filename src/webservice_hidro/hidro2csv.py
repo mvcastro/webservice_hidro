@@ -2,7 +2,7 @@ import os
 
 import geopandas as gpd
 
-from webservice_hidro import webservice_access as hidro
+from webservice_hidro.webservice_access import serie_historica as hidro
 from webservice_hidro import enums_hidro as eh
 
 ASSOCIACAO_VARIAVEL_TIPO_DADO = {

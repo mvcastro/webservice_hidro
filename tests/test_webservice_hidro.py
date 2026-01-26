@@ -4,15 +4,12 @@ from unittest.mock import Mock, patch
 
 import pandas as pd
 
-# File: tests/test_webservice_hidro.py
-from src.webservice_hidro import (
-    TipoDeDados,
-    TipoDeEstacao,
-    TipoDeVariavel,
+from webservice_hidro import (
     reorganiza_serie_em_coluna,
-    retorna_inventario,
+    retorna_inventario_em_dataframe,
     retorna_serie_historica,
 )
+from webservice_hidro.enums_hidro import TipoDeDados, TipoDeEstacao, TipoDeVariavel
 
 # Helper XMLs
 INVENTARIO_XML = b"""
@@ -42,7 +39,9 @@ class TestWebServiceFunctions(unittest.TestCase):
     @patch("src.webservice_hidro.requests.get")
     def test_retorna_inventario(self, mock_get: Mock):
         mock_get.return_value = Mock(content=INVENTARIO_XML)
-        df = retorna_inventario(codEstDE="12345678", tpEst=TipoDeEstacao.FLUVIOMETRICA)
+        df = retorna_inventario_em_dataframe(
+            codEstDE="12345678", tpEst=TipoDeEstacao.FLUVIOMETRICA
+        )
         assert not df.empty
         assert "EstacaoCodigo" in df.columns
         assert df.iloc[0]["EstacaoCodigo"] == "12345678"
