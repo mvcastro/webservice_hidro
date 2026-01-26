@@ -1,0 +1,6 @@
+from .webservice_access.inventario import retorna_inventario as retorna_inventario, retorna_inventario_em_dataframe as retorna_inventario_em_dataframe
+from .webservice_access.serie_historica import reorganiza_serie_em_coluna as reorganiza_serie_em_coluna, retorna_serie_historica as retorna_serie_historica
+from webservice_hidro.webservice_access.rio import retorna_rio_por_codigo as retorna_rio_por_codigo
+from webservice_hidro.webservice_access.subbacia import retorna_subbacia_por_codigo as retorna_subbacia_por_codigo
+
+__all__ = ['retorna_inventario', 'retorna_inventario_em_dataframe', 'retorna_serie_historica', 'reorganiza_serie_em_coluna', 'retorna_rio_por_codigo', 'retorna_subbacia_por_codigo']

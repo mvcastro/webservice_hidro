@@ -1,10 +1,8 @@
+from .enums_hidro import NivelDeConsistencia as NivelDeConsistencia
 from abc import ABC
 from dataclasses import dataclass
 from datetime import date
 from typing import Literal, TypedDict
-
-from .enums_hidro import NivelDeConsistencia
-
 
 class Inventario(TypedDict):
     BaciaCodigo: str | None
@@ -80,13 +78,11 @@ class Inventario(TypedDict):
     DataIns: str | None
     DataAlt: str | None
 
-
 class Rio(TypedDict):
     BaciaCodigo: int
     SubBaciaCodigo: int
     Codigo: int
     Nome: str
-
 
 class Subbacia(TypedDict):
     codBacia: int
@@ -94,29 +90,20 @@ class Subbacia(TypedDict):
     codSubBacia: int
     nmSubBacia: str
 
-
 @dataclass
 class PivotSerie(ABC):
     EstacaoCodigo: int
     Data: date
     NivelConsistencia: NivelDeConsistencia | Literal[0, 1]
-
-    def __post_init__(self):
-        if type(self) is PivotSerie:
-            raise NotImplementedError(
-                "This is a base class and cannot be instantiated directly."
-            )
-
+    def __post_init__(self) -> None: ...
 
 @dataclass
 class PivotCota(PivotSerie):
     Cota: float | None
 
-
 @dataclass
 class PivotChuva(PivotSerie):
     Chuva: float | None
-
 
 @dataclass
 class PivotVazao(PivotSerie):
