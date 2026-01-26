@@ -2,14 +2,16 @@ import os
 
 import geopandas as gpd
 
-from webservice_hidro.webservice_access import serie_historica as hidro
-from webservice_hidro import enums_hidro as eh
+from webservice_hidro.constants import ASSOCIACAO_TIPO_DADO_VARIAVEL
+from webservice_hidro.enums_hidro import TipoDeDados, TipoDeEstacao
+from webservice_hidro.webservice_access.inventario import (
+    retorna_inventario_em_dataframe,
+)
+from webservice_hidro.webservice_access.serie_historica import (
+    reorganiza_serie_em_coluna,
+    retorna_serie_historica,
+)
 
-ASSOCIACAO_VARIAVEL_TIPO_DADO = {
-    eh.TipoDeDados.COTAS: eh.TipoDeVariavel.COTA,
-    eh.TipoDeDados.CHUVAS: eh.TipoDeVariavel.CHUVA,
-    eh.TipoDeDados.VAZOES: eh.TipoDeVariavel.VAZAO,
-}
 
 def exporta_dados_hidro():
     codEstDE = input("Código de 8 dígitos da estação - INICIAL (Ex.: 00047000):")
@@ -39,7 +41,7 @@ def exporta_dados_hidro():
 
     # Requisita do webserice o DataFrame de dados
     # do inventário de estações selecionadas
-    df_hidro = hidro.retorna_inventario_em_dataframe(
+    df_hidro = retorna_inventario_em_dataframe(
         codEstDE=codEstDE,
         codEstATE=codEstATE,
         tpEst=tpEst,
@@ -67,9 +69,9 @@ def exporta_dados_hidro():
         cod_estacao = row["Codigo"]
 
         # Estacao Fluviometrica
-        if tipo_estacao == eh.TipoDeEstacao.FLUVIOMETRICA.value:
-            for tipo_dados in [eh.TipoDeDados.COTAS, eh.TipoDeDados.VAZOES]:
-                df_serie = hidro.retorna_serie_historica(
+        if tipo_estacao == TipoDeEstacao.FLUVIOMETRICA:
+            for tipo_dados in [TipoDeDados.COTAS, TipoDeDados.VAZOES]:
+                df_serie = retorna_serie_historica(
                     codEstacao=cod_estacao,
                     tipoDados=tipo_dados,
                     dataInicio="01/01/1900",
@@ -80,10 +82,10 @@ def exporta_dados_hidro():
                 )
                 df_serie.to_csv(file_path, index=False, sep=";", decimal=",")
 
-        if tipo_estacao == hidro.TipoDeEstacao.PLUVIOMETRICA:
-            tipo_dados = hidro.TipoDeDados.CHUVAS
+        if tipo_estacao == TipoDeEstacao.PLUVIOMETRICA:
+            tipo_dados = TipoDeDados.CHUVAS
 
-            df_serie = hidro.retorna_serie_historica(
+            df_serie = retorna_serie_historica(
                 codEstacao=cod_estacao,
                 tipoDados=tipo_dados,
                 dataInicio="01/01/1900",
@@ -97,7 +99,7 @@ def exporta_dados_hidro():
 
 def exporta_dados_hidro_por_geometria(
     caminho_geometria: str,
-    tipo_de_dados: hidro.TipoDeDados,
+    tipo_de_dados: TipoDeDados,
     diretorio_saida: str,
     data_inicial: str = "01/01/1900",
     data_final: str = "",
@@ -114,17 +116,17 @@ def exporta_dados_hidro_por_geometria(
         data_final (str, optional): Data Final das séries temporais. Defaults to ''.
     """
 
-    gdf = gpd.read_file(filename=caminho_geometria)
+    gdf = gpd.read_file(filename=caminho_geometria)  # pyright: ignore[reportUnknownMemberType]
     geometria_poligono = gdf.geometry.union_all
 
-    if tipo_de_dados in [hidro.TipoDeDados.COTAS, hidro.TipoDeDados.VAZOES]:
-        tipo_estacao = hidro.TipoDeEstacao.FLUVIOMETRICA
+    if tipo_de_dados in [TipoDeDados.COTAS, TipoDeDados.VAZOES]:
+        tipo_estacao = TipoDeEstacao.FLUVIOMETRICA
     else:
-        tipo_estacao = hidro.TipoDeEstacao.PLUVIOMETRICA
+        tipo_estacao = TipoDeEstacao.PLUVIOMETRICA
 
     # Requisita do webserice o DataFrame de dados
     # do inventário de estações selecionadas
-    df_hidro = hidro.retorna_inventario(tpEst=tipo_estacao)
+    df_hidro = retorna_inventario_em_dataframe(tpEst=tipo_estacao)
     geometria_estacoes = gpd.points_from_xy(
         x=df_hidro["Longitude"], y=df_hidro["Latitude"], crs="EPSG:4674"
     )
@@ -144,7 +146,7 @@ def exporta_dados_hidro_por_geometria(
     for codigo_estacao in codigo_estacoes_selecionadas:
         print(f"Buscando dados para a estação com código {codigo_estacao}...")
 
-        df_serie = hidro.retorna_serie_historica(
+        df_serie = retorna_serie_historica(
             codEstacao=codigo_estacao,
             tipoDados=tipo_de_dados,
             dataInicio=data_inicial,
@@ -158,11 +160,8 @@ def exporta_dados_hidro_por_geometria(
             )
             continue
 
-        hidro.reorganiza_serie_em_coluna(
-            dados_api=df_serie, 
-            variavel=ASSOCIACAO_VARIAVEL_TIPO_DADO[tipo_de_dados]
-        ).to_csv(
-            os.path.join(diretorio_saida, f"dados_estacao_{codigo_estacao}.csv")
-        )
+        reorganiza_serie_em_coluna(
+            dados_api=df_serie, variavel=ASSOCIACAO_TIPO_DADO_VARIAVEL[tipo_de_dados]
+        ).to_csv(os.path.join(diretorio_saida, f"dados_estacao_{codigo_estacao}.csv"))
 
         print(f"Dados da estação {codigo_estacao} salvos em arquivo CSV.")

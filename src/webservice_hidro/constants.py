@@ -1,0 +1,9 @@
+from typing_extensions import Final
+
+from webservice_hidro.enums_hidro import TipoDeDados, TipoDeVariavel
+
+ASSOCIACAO_TIPO_DADO_VARIAVEL: Final[dict[TipoDeDados, TipoDeVariavel]] = {
+    TipoDeDados.COTAS: TipoDeVariavel.COTA,
+    TipoDeDados.CHUVAS: TipoDeVariavel.CHUVA,
+    TipoDeDados.VAZOES: TipoDeVariavel.VAZAO,
+}
