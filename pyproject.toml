@@ -24,3 +24,6 @@ build-backend = "uv_build"
 dev = [
     "pyright>=1.1.408",
 ]
+
+[tool.pyright]
+stubPath = "./typings"
