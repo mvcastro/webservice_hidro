@@ -11,10 +11,10 @@ from .webservice_access.serie_historica import (
 )
 
 __all__ = [
+    "reorganiza_serie_em_coluna",
     "retorna_inventario",
     "retorna_inventario_em_dataframe",
-    "retorna_serie_historica",
-    "reorganiza_serie_em_coluna",
     "retorna_rio_por_codigo",
+    "retorna_serie_historica",
     "retorna_subbacia_por_codigo",
 ]

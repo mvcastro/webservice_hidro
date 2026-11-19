@@ -36,7 +36,7 @@ SERIE_XML = b"""
 
 
 class TestWebServiceFunctions(unittest.TestCase):
-    @patch("src.webservice_hidro.requests.get")
+    @patch("webservice_hidro.requests.get")
     def test_retorna_inventario(self, mock_get: Mock):
         mock_get.return_value = Mock(content=INVENTARIO_XML)
         df = retorna_inventario_em_dataframe(
@@ -46,7 +46,7 @@ class TestWebServiceFunctions(unittest.TestCase):
         assert "EstacaoCodigo" in df.columns
         assert df.iloc[0]["EstacaoCodigo"] == "12345678"
 
-    @patch("src.webservice_hidro.requests.get")
+    @patch("webservice_hidro.requests.get")
     def test_retorna_serie_historica(self, mock_get: Mock):
         mock_get.return_value = Mock(content=SERIE_XML)
         df = retorna_serie_historica(
